@@ -9,4 +9,6 @@ router.post('/sign-in', passport.authenticate('local', { failureRedirect: '/api/
 
 router.get('/sign-in-failed', controller.SignInFailed)
 
+router.post('/jwt-verify', controller.JwtVerify)
+
 module.exports = router
