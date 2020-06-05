@@ -3,16 +3,17 @@ const jwt = require('jsonwebtoken')
 const User = require('../../../model/user')
 const message = require('../../../module/message')
 const { TOKEN_KEY, TOKEN_OPTIONS } = require('../../../config')
+const { FailedMessageObj } = require('../../../module/constants')
 
 const { SuccessMessage, FailedMessage, InternalErrorMessage } = message
 
 exports.SignUp = async (req, res) => {
   try {
     const { email, password, nickname, address, birthDay } = req.body
-    if (!email || !password || !nickname || !address || !birthDay) {
-      return res.status(400).send(new FailedMessage('ERR_SHORT_PARAM', '필수 파라미터가 전달되지 않았습니다.'))
+    if (!(email && password && nickname && address && birthDay)) {
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
     }
-    if (await User.chkExistsEmail(email)) return res.status(400).send(new FailedMessage('ERR_EXIST_EMAIL', '중복된 이메일입니다. 이미 가입된 계정으로 로그인 해주세요.'))
+    if (await User.chkExistsEmail(email)) return res.status(400).send(new FailedMessage(FailedMessageObj.EXIST_EMAIL))
     await User.signUp({ email, password, nickname, address, birthDay })
     res.send(new SuccessMessage())
   } 
@@ -36,7 +37,7 @@ exports.SignIn = (req, res) => {
 }
 
 exports.SignInFailed = (req, res) => {
-  res.status(400).send(new FailedMessage('ERR_INVALID_EMAIL_PWD', '이메일이나 비밀번호가 틀렸습니다'))
+  res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_EMAIL_PWD))
 }
 
 // 토큰이 정상적으로 발급되고 유지됐는지 검사한다.
@@ -44,3 +45,4 @@ exports.SignInFailed = (req, res) => {
 exports.JwtVerify = (req, res) => {
   res.send(new SuccessMessage())
 }
+

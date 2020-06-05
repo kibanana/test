@@ -14,10 +14,10 @@ class SuccessMessage extends Message {
 
 // Status Code 4XX
 class FailedMessage extends Message {
-  constructor (_err_code, _description) {
+  constructor (obj) {
     super('failed')
-    this.err_code = _err_code
-    this.description = _description
+    this.err_code = obj.MESSAGE
+    this.description = obj.DESCRIPTION
   }
 }
 

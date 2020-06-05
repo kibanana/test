@@ -1,4 +1,5 @@
 const User = require('../../../model/user')
+const { FailedMessageObj } = require('../../../module/constants')
 
 const { SuccessMessage, FailedMessage, InternalErrorMessage } = require('../../../module/message')
 
@@ -6,11 +7,11 @@ exports.changeUserPassword = async (req, res) => {
   try {
     const { oldPwd, newPwd } = req.body
     if (!(oldPwd && newPwd)) {
-      return res.status(400).send(new FailedMessage('ERR_INVALID_PARAM', '필수 파라미터가 전달되지 않았습니다.'))
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
     }
     const user = await User.findPasswordById(req.user._id)
     if (!user.verify(oldPwd)) {
-      return res.status(400).send(new FailedMessage('ERR_INVALID_PWD', '기존 비밀번호가 틀렸습니다'))
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVAILD_PWD))
     }
     user.password = newPwd
     user.save()
@@ -25,10 +26,10 @@ exports.changeUserNickname = async (req, res) => {
   try {
     const { nickname } = req.body
     if (!nickname) {
-      return res.status(400).send(new FailedMessage('ERR_INVALID_PARAM', '필수 파라미터가 전달되지 않았습니다.'))
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
     }
     if (await User.chkExistsNickname(req.user._id, nickname)) {
-      return res.status(400).send(new FailedMessage('ERR_EXISTS_NICKNAME', '다른 사용자의 닉네임입니다'))
+      return res.status(400).send(new FailedMessage(FailedMessageObj.EXIST_NICKNAME))
     }
     await User.changeUserNickname(req.user._id, nickname)
     res.send(new SuccessMessage())
@@ -42,7 +43,7 @@ exports.changeUserInfo = async (req, res) => {
   try {
     const { address, birthDay } = req.body
     if (!address && !birthDay) {
-      return res.status(400).send(new FailedMessage('ERR_INVALID_PARAM', '필수 파라미터가 전달되지 않았습니다.'))
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
     }
     await User.changeUserInfo({ id: req.user._id, address, birthDay })
     res.send(new SuccessMessage())
@@ -51,3 +52,4 @@ exports.changeUserInfo = async (req, res) => {
     res.status(500).send(new InternalErrorMessage())
   }  
 }
+
