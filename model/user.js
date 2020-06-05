@@ -32,6 +32,10 @@ userSchema.statics.signIn = function (email) {
   return this.findOne({ email })
 }
 
+userSchema.statics.findById = function (id) {
+  return this.findOne({ _id: id }, { password: false })
+}
+
 userSchema.statics.updateUser = function (id, user) {
   return this.updateOne({ _id: new ObjectId(id) }, { ...user })
 }
