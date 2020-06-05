@@ -14,6 +14,7 @@ exports.SignUp = async (req, res) => {
       return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
     }
     if (await User.chkExistsEmail(email)) return res.status(400).send(new FailedMessage(FailedMessageObj.EXIST_EMAIL))
+    if (await User.chkExistsNickname(nickname)) return res.status(400).send(new FailedMessage(FailedMessageObj.EXIST_NICKNAME))
     await User.signUp({ email, password, nickname, address, birthDay })
     res.send(new SuccessMessage())
   } 

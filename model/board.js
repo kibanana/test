@@ -1,5 +1,39 @@
 const mongoose = require('mongoose')
+const ObjectId = require('mongoose').Types.ObjectId
 
 const boardSchema = mongoose.Schema({
-  
+  userId: { type: ObjectId, ref: 'User'},
+  title: { type: String },
+  body: { type: String },
+  likeMembers: { type: [{ type: ObjectId, ref: 'User'}] }, // 좋아요
+  createdAt: { type: Date, default: Date.now }
 })
+
+boardSchema.statics.createBoard = function (param) {
+  const { userId, title, body } = param
+  return this.create({ userId, title, body })
+    .then((result) => result._id)
+}
+ 
+boardSchema.statics.findBoards = function () {
+  return this.find({}, { userId: true, title: true, createdAt: true })
+}
+
+boardSchema.statics.findBoard = function (id) {
+  return this.find({ _id: id }, { likeMembers: false })
+}
+
+boardSchema.statics.changeBoard = function (param) { // userId는 JWT에서
+  const { id, userId, title, body } = param
+  const updateQuery = { }
+  if (title) updateQuery.title = title
+  if (body) updateQuery.body = body
+
+  return this.updateOne({ _id: id, userId }, updateQuery)
+}
+
+boardSchema.statics.deleteBoard = function (id, userId) { // userId는 JWT에서
+  return this.deleteOne({ _id: id, userId })
+}
+
+module.exports = mongoose.model('Board', boardSchema)

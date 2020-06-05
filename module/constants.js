@@ -15,6 +15,10 @@ const FailedMessageObj = {
     MESSAGE: 'ERR_INVALID_PWD', 
     DESCRIPTION: '기존 비밀번호가 틀렸습니다'
   },
+  NOT_EXIST: {
+    MESSAGE: 'ERR_NOT_EXIST', 
+    DESCRIPTION: '식별자 데이터가 DB에 없습니다'
+  },
   EXIST_NICKNAME: {
     MESSAGE: 'ERR_EXIST_NICKNAME',
     DESCRIPTION: '다른 사용자의 닉네임입니다'

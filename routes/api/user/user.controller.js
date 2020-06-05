@@ -28,7 +28,7 @@ exports.changeUserNickname = async (req, res) => {
     if (!nickname) {
       return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
     }
-    if (await User.chkExistsNickname(req.user._id, nickname)) {
+    if (await User.chkExistsNickname(nickname, req.user._id)) {
       return res.status(400).send(new FailedMessage(FailedMessageObj.EXIST_NICKNAME))
     }
     await User.changeUserNickname(req.user._id, nickname)

@@ -17,8 +17,12 @@ userSchema.statics.chkExistsEmail = async function (email) {
   // true: 중복, false: 사용 가능
 }
 
-userSchema.statics.chkExistsNickname = async function (id, nickname) {
-  return (await this.countDocuments({ _id: { $ne: new ObjectId(id) }, nickname }).exec()) > 0
+userSchema.statics.chkExistsNickname = async function (nickname, id = null) {
+  const findQuery = { nickname }
+  if (id) {
+    findQuery._id = { $ne: new ObjectId(id) }
+  }
+  return (await this.countDocuments(findQuery).exec()) > 0
 }
 
 userSchema.statics.signUp = function (param) {
@@ -44,10 +48,6 @@ userSchema.statics.findPasswordById = function (id) {
 
 userSchema.statics.findById = function (id) {
   return this.findOne({ _id: id }, { password: false })
-}
-
-userSchema.statics.changeUserPassword = function (id, password) {
-  return this.findByIdAndUpdate(id, { password })
 }
 
 userSchema.statics.changeUserNickname = function (id, nickname) {
