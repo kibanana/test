@@ -6,7 +6,8 @@ const createHash = require('../module/createHash')
 const userSchema = mongoose.Schema({
   email: { type: String, required: true, trim: true },
   password: { type: String, required: true, trim: true },
-  name: { type: String, required: true, trim: true },
+  nickname: { type: String, trim: true },
+  address: { type: String, trim: true },
   birthDay: { type: Date },
   createdAt: Date
 })
@@ -16,7 +17,12 @@ userSchema.statics.chkExistsEmail = async function (email) {
   // true: 중복, false: 사용 가능
 }
 
-userSchema.statics.signUp = function (email, password, name) {
+userSchema.statics.chkExistsNickname = async function (id, nickname) {
+  return (await this.countDocuments({ _id: { $ne: new ObjectId(id) }, nickname }).exec()) > 0
+}
+
+userSchema.statics.signUp = function (param) {
+  const { email, password, nickname, address, birthDay } = param
   // 1)
   // const user = new this({
   //   email,
@@ -25,30 +31,35 @@ userSchema.statics.signUp = function (email, password, name) {
   // user.save()
   // return user
   // 2)
-  return this.create({ email, password, name, createdAt: new Date() })
+  return this.create({ email, password, nickname, address, birthDay, createdAt: new Date() })
 }
 
 userSchema.statics.signIn = function (email) {
   return this.findOne({ email })
 }
 
+userSchema.statics.findPasswordById = function (id) {
+  return this.findOne({ _id: id }, { _id: true, password: true })
+}
+
 userSchema.statics.findById = function (id) {
   return this.findOne({ _id: id }, { password: false })
 }
 
-userSchema.statics.updateUser = function (id, user) {
-  return this.updateOne({ _id: new ObjectId(id) }, { ...user })
+userSchema.statics.changeUserPassword = function (id, password) {
+  return this.findByIdAndUpdate(id, { password })
 }
 
-userSchema.statics.updateUserPassword = function (id, password) {
-  return this.findByIdAndUpdate(id, { $set: { password } })
-    .then((result) => {
-      return result ? true : false
-    })
+userSchema.statics.changeUserNickname = function (id, nickname) {
+  return this.updateOne({ _id: new ObjectId(id) }, { nickname })
 }
 
-userSchema.statics.deleteUser = function (id) {
-  return this.findByIdAndDelete(id)
+userSchema.statics.changeUserInfo = function (param) {
+  const { id, address, birthDay } = param
+  const updateQuery = { }
+  if (address) updateQuery.address = address
+  if (birthDay) updateQuery.birthDay = birthDay
+  return this.updateOne({ _id: new ObjectId(id) }, updateQuery)
 }
 
 userSchema.methods.verify = function (password) {

@@ -8,9 +8,12 @@ const { SuccessMessage, FailedMessage, InternalErrorMessage } = message
 
 exports.SignUp = async (req, res) => {
   try {
-    const { email, password, name } = req.body
+    const { email, password, nickname, address, birthDay } = req.body
+    if (!email || !password || !nickname || !address || !birthDay) {
+      return res.status(400).send(new FailedMessage('ERR_SHORT_PARAM', '필수 파라미터가 전달되지 않았습니다.'))
+    }
     if (await User.chkExistsEmail(email)) return res.status(400).send(new FailedMessage('ERR_EXIST_EMAIL', '중복된 이메일입니다. 이미 가입된 계정으로 로그인 해주세요.'))
-    await User.signUp(email, password, name)
+    await User.signUp({ email, password, nickname, address, birthDay })
     res.send(new SuccessMessage())
   } 
   catch (err) {
