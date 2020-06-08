@@ -3,7 +3,7 @@ const ObjectId = require('mongoose').Types.ObjectId
 
 const boardSchema = mongoose.Schema({
   userId: { type: ObjectId, ref: 'User'},
-  title: { type: String },
+  title: { type: String, index: 'text' },
   body: { type: String },
   likeMembers: { type: [{ type: ObjectId, ref: 'User'}] }, // 좋아요
   createdAt: { type: Date, default: Date.now }
@@ -15,8 +15,16 @@ boardSchema.statics.createBoard = function (param) {
     .then((result) => result._id)
 }
  
-boardSchema.statics.findBoards = function () {
-  return this.find({}, { userId: true, title: true, createdAt: true })
+boardSchema.statics.findBoards = function (searchString) { // 어차피 없으면 undefined
+  const aggregation = [
+    { $project: { userId: true, title: true, createdAt: true } }
+  ]
+  if (searchString) {
+    aggregation.unshift({ $match: { $text: { $search: searchString } } },
+      { $sort: { score: { $meta: "textScore" } } },)
+  }
+  
+  return this.aggregate(aggregation)
 }
 
 boardSchema.statics.findBoard = function (id) {
