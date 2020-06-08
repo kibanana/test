@@ -44,4 +44,24 @@ boardSchema.statics.deleteBoard = function (id, userId) { // userId는 JWT에서
   return this.deleteOne({ _id: id, userId })
 }
 
+boardSchema.statics.addLikeMember = function (id, userId) {
+  // this.updateOne({ _id: id }, { $addToSet: { likeMembers: ObjectId(userId) } })
+  // addToSet을 사용하면 따로 체크할 필요 없다
+  return this.updateOne({
+    _id: id, 
+    likeMembers: { $ne: ObjectId(userId) },
+  }, {
+    $push: { likeMembers: ObjectId(userId) } 
+  })
+}
+
+boardSchema.statics.removeLikeMember = function (id, userId) {
+  return this.updateOne({
+    _id: id, 
+    likeMembers: { $eq: ObjectId(userId) },
+  }, {
+    $pull: { likeMembers: ObjectId(userId) } 
+  })
+}
+
 module.exports = mongoose.model('Board', boardSchema)

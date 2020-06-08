@@ -1,7 +1,7 @@
 const Board = require('../../../model/board')
 
 const message = require('../../../module/message')
-const { FailedMessageObj } = require('../../../module/constants')
+const { FailedMessageObj, OBJECT_ID_LENGTH } = require('../../../module/constants')
 const { SuccessMessage, FailedMessage, InternalErrorMessage } = message
 
 exports.createBoard = async (req, res) => {
@@ -34,7 +34,7 @@ exports.findBoards = async (req, res) => {
 exports.findBoard = async (req, res) => {
   try {
     const { id } = req.params
-    if (!id) { 
+    if (!id || id.length != OBJECT_ID_LENGTH) { 
       return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
     }
     const board = await Board.findBoard(id)
@@ -53,7 +53,7 @@ exports.changeBoard = async (req, res) => {
     const { id } = req.params
     const { title, body } = req.body
     const userId = req.user._id
-    if (!(userId && id && title && body)) {
+    if (!(userId && id && title && body) || id.length != OBJECT_ID_LENGTH) {
       return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
     }
     const result = await Board.changeBoard({ userId, id, title, body })
@@ -71,7 +71,7 @@ exports.deleteBoard = async (req, res) => {
   try {
     const { id } = req.params
     const userId = req.user._id
-    if (!(id && userId)) {
+    if (!(id && userId) || id.length != OBJECT_ID_LENGTH) {
       return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
     }
     const result = await Board.deleteBoard(id, userId)
@@ -81,6 +81,38 @@ exports.deleteBoard = async (req, res) => {
     res.send(new SuccessMessage())
   }
   catch (err) {
+    res.status(500).send(new InternalErrorMessage())
+  }
+}
+
+exports.likeBoard = async (req, res) => {
+  try {
+    const { id } = req.params
+    const userId = req.user._id
+    if (!(id && userId) || id.length != OBJECT_ID_LENGTH) {
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
+    }
+    await Board.addLikeMember(id, userId)
+    res.send(new SuccessMessage())
+  }
+  catch (err) {
+    console.log(err)
+    res.status(500).send(new InternalErrorMessage())
+  }
+}
+
+exports.cancelLikeBoard = async (req, res) => {
+  try {
+    const { id } = req.params
+    const userId = req.user._id
+    if (!(id && userId) || id.length != OBJECT_ID_LENGTH) {
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
+    }
+    await Board.removeLikeMember(id, userId)
+    res.send(new SuccessMessage())
+  }
+  catch (err) {
+    console.log(err)
     res.status(500).send(new InternalErrorMessage())
   }
 }
