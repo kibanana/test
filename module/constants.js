@@ -1,7 +1,7 @@
 const FailedMessageObj = {
   INVALID_PARAM: {
     MESSAGE: 'ERR_INVALID_PARAM', 
-    DESCRIPTION: '필수 파라미터가 유효하지 않습니다.'
+    DESCRIPTION: '파라미터가 유효하지 않습니다.'
   },
   INVALID_EMAIL_PWD: {
     MESSAGE: 'ERR_INVALID_EMAIL_PWD',

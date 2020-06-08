@@ -16,17 +16,19 @@ exports.createBoard = async (req, res) => {
     // res.send(new SuccessMessage())
   }
   catch (err) {
+    console.log(err)
     res.status(500).send(new InternalErrorMessage())
   }
 }
 
 exports.findBoards = async (req, res) => {
   try {
-    const { searchString } = req.body
-    const boards = await Board.findBoards(searchString)
+    const { searchString, sortKey } = req.body
+    const boards = await Board.findBoards(searchString, Number(sortKey))
     res.send(new SuccessMessage(boards))
   }
   catch (err) {
+    console.log(err)
     res.status(500).send(new InternalErrorMessage())
   }
 }
@@ -44,6 +46,7 @@ exports.findBoard = async (req, res) => {
     res.send(new SuccessMessage(board))
   }
   catch (err) {
+    console.log(err)
     res.status(500).send(new InternalErrorMessage())
   }
 }
@@ -63,6 +66,7 @@ exports.changeBoard = async (req, res) => {
     res.send(new SuccessMessage())
   }
   catch (err) {
+    console.log(err)
     res.status(500).send(new InternalErrorMessage())
   }
 }
@@ -81,6 +85,7 @@ exports.deleteBoard = async (req, res) => {
     res.send(new SuccessMessage())
   }
   catch (err) {
+    console.log(err)
     res.status(500).send(new InternalErrorMessage())
   }
 }

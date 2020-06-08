@@ -15,15 +15,29 @@ boardSchema.statics.createBoard = function (param) {
     .then((result) => result._id)
 }
  
-boardSchema.statics.findBoards = function (searchString) { // 어차피 없으면 undefined
+boardSchema.statics.findBoards = function (searchString, sortKey) { // 어차피 없으면 undefined
   const aggregation = [
     { $project: { userId: true, title: true, createdAt: true } }
   ]
-  if (searchString) {
+  const sortCondition = { $sort: {} }
+  switch (sortKey) {
+    case 2: // 오래된순
+      sortCondition.$sort.createdAt = 1
+      break
+    case 3: // 좋아요순
+      aggregation[0].$project.likes = { $size: '$likeMembers' }
+      sortCondition.$sort.likes = -1
+      break
+    
+    case 1:
+    default: // 최신순
+      sortCondition.$sort.createdAt = -1
+  }
+  aggregation.push(sortCondition)
+  if (searchString) { // searchString if문이 sortKey if문 앞에 있으면 좋아요순 처리할 때 $project 접근 힘듦
     aggregation.unshift({ $match: { $text: { $search: searchString } } },
       { $sort: { score: { $meta: "textScore" } } },)
   }
-  
   return this.aggregate(aggregation)
 }
 
