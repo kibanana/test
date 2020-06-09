@@ -7,13 +7,13 @@ const reportSchema = mongoose.Schema({
   value: { type: String }, // value은 일단 기타(code: 4)에서만 사용
   createdAt: { type: Date, default: Date.now }
 })
-
 const boardSchema = mongoose.Schema({
   userId: { type: ObjectId, ref: 'User'},
   title: { type: String, index: 'text' },
   body: { type: String },
   likeMembers: { type: [{ type: ObjectId, ref: 'User'}] }, // 좋아요
   reportMembers: [reportSchema], // 신고
+  isDeleted: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now }
 })
 
@@ -28,10 +28,10 @@ boardSchema.statics.findBoards = function (searchString, sortKey) { // 어차피
     { $project: { 
       userId: true, 
       title: true, 
-      createdAt: true,
+      createdAt: true, 
       likes: { $size: '$likeMembers' },
       reports: { $size: { $ifNull: ['$reportMembers', []] } } } },
-    { $match: { reports: { $lt: 2 } } } // 2보다 작아야 한다
+    { $match: { reports: { $lt: 2 }, isDeleted: false } } // 신고 수가 2보다 작아야 한다, isDeleted가 false여야 한다
   ]
   const sortCondition = { $sort: {} }
   switch (sortKey) {
@@ -68,7 +68,7 @@ boardSchema.statics.updateBoard = function (param) { // userId는 JWT에서
 }
 
 boardSchema.statics.deleteBoard = function (id, userId) { // userId는 JWT에서
-  return this.deleteOne({ _id: id, userId })
+  return this.updateOne({ _id: id, userId }, { isDeleted: true })
 }
 
 boardSchema.statics.addLikeMember = function (id, userId) {
