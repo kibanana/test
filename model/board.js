@@ -1,11 +1,19 @@
 const mongoose = require('mongoose')
 const ObjectId = require('mongoose').Types.ObjectId
 
+const reportSchema = mongoose.Schema({
+  userId: { type: ObjectId, ref: 'User' },
+  code: { type: Number },
+  value: { type: String }, // value은 일단 기타(code: 4)에서만 사용
+  createdAt: { type: Date, default: Date.now }
+})
+
 const boardSchema = mongoose.Schema({
   userId: { type: ObjectId, ref: 'User'},
   title: { type: String, index: 'text' },
   body: { type: String },
   likeMembers: { type: [{ type: ObjectId, ref: 'User'}] }, // 좋아요
+  reportMembers: [reportSchema], // 신고
   createdAt: { type: Date, default: Date.now }
 })
 
@@ -17,7 +25,13 @@ boardSchema.statics.createBoard = function (param) {
  
 boardSchema.statics.findBoards = function (searchString, sortKey) { // 어차피 없으면 undefined
   const aggregation = [
-    { $project: { userId: true, title: true, createdAt: true } }
+    { $project: { 
+      userId: true, 
+      title: true, 
+      createdAt: true,
+      likes: { $size: '$likeMembers' },
+      reports: { $size: { $ifNull: ['$reportMembers', []] } } } },
+    { $match: { reports: { $lt: 2 } } } // 2보다 작아야 한다
   ]
   const sortCondition = { $sort: {} }
   switch (sortKey) {
@@ -25,7 +39,6 @@ boardSchema.statics.findBoards = function (searchString, sortKey) { // 어차피
       sortCondition.$sort.createdAt = 1
       break
     case 3: // 좋아요순
-      aggregation[0].$project.likes = { $size: '$likeMembers' }
       sortCondition.$sort.likes = -1
       break
     
@@ -45,7 +58,7 @@ boardSchema.statics.findBoard = function (id) {
   return this.find({ _id: id }, { likeMembers: false })
 }
 
-boardSchema.statics.changeBoard = function (param) { // userId는 JWT에서
+boardSchema.statics.updateBoard = function (param) { // userId는 JWT에서
   const { id, userId, title, body } = param
   const updateQuery = { }
   if (title) updateQuery.title = title
@@ -75,6 +88,22 @@ boardSchema.statics.removeLikeMember = function (id, userId) {
     likeMembers: { $eq: ObjectId(userId) },
   }, {
     $pull: { likeMembers: ObjectId(userId) } 
+  })
+}
+
+boardSchema.statics.addReportMember = function (param) {
+  const { id, userId, code, value } = param
+  const pushQuery = {
+    userId: ObjectId(userId), code
+  }
+  if (value) {
+    pushQuery.value = value
+  }
+  return this.updateOne({
+    _id: id,
+    reportMembers: { $not: { $elemMatch: { userId: ObjectId(userId)} } },
+  }, {
+    $push: { reportMembers: pushQuery }
   })
 }
 

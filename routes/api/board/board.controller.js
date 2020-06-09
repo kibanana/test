@@ -4,7 +4,7 @@ const message = require('../../../module/message')
 const { FailedMessageObj, OBJECT_ID_LENGTH } = require('../../../module/constants')
 const { SuccessMessage, FailedMessage, InternalErrorMessage } = message
 
-exports.createBoard = async (req, res) => {
+exports.CreateBoard = async (req, res) => {
   try {
     const { title, body } = req.body
     const userId = req.user._id
@@ -21,7 +21,7 @@ exports.createBoard = async (req, res) => {
   }
 }
 
-exports.findBoards = async (req, res) => {
+exports.FindBoards = async (req, res) => {
   try {
     const { searchString, sortKey } = req.body
     const boards = await Board.findBoards(searchString, Number(sortKey))
@@ -33,7 +33,7 @@ exports.findBoards = async (req, res) => {
   }
 }
 
-exports.findBoard = async (req, res) => {
+exports.FindBoard = async (req, res) => {
   try {
     const { id } = req.params
     if (!id || id.length != OBJECT_ID_LENGTH) { 
@@ -51,7 +51,7 @@ exports.findBoard = async (req, res) => {
   }
 }
 
-exports.changeBoard = async (req, res) => {
+exports.UpdateBoard = async (req, res) => {
   try {
     const { id } = req.params
     const { title, body } = req.body
@@ -59,7 +59,7 @@ exports.changeBoard = async (req, res) => {
     if (!(userId && id && title && body) || id.length != OBJECT_ID_LENGTH) {
       return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
     }
-    const result = await Board.changeBoard({ userId, id, title, body })
+    const result = await Board.updateBoard({ userId, id, title, body })
     if (result.n == 0) {
       return res.status(404).send(new FailedMessage(FailedMessageObj.NOT_EXIST))
     }
@@ -71,7 +71,7 @@ exports.changeBoard = async (req, res) => {
   }
 }
 
-exports.deleteBoard = async (req, res) => {
+exports.DeleteBoard = async (req, res) => {
   try {
     const { id } = req.params
     const userId = req.user._id
@@ -90,7 +90,7 @@ exports.deleteBoard = async (req, res) => {
   }
 }
 
-exports.likeBoard = async (req, res) => {
+exports.LikeBoard = async (req, res) => {
   try {
     const { id } = req.params
     const userId = req.user._id
@@ -106,7 +106,7 @@ exports.likeBoard = async (req, res) => {
   }
 }
 
-exports.cancelLikeBoard = async (req, res) => {
+exports.CancelLikeBoard = async (req, res) => {
   try {
     const { id } = req.params
     const userId = req.user._id
@@ -114,6 +114,23 @@ exports.cancelLikeBoard = async (req, res) => {
       return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
     }
     await Board.removeLikeMember(id, userId)
+    res.send(new SuccessMessage())
+  }
+  catch (err) {
+    console.log(err)
+    res.status(500).send(new InternalErrorMessage())
+  }
+}
+
+exports.ReportBoard = async (req, res) => {
+  try {
+    const { id } = req.params
+    const userId = req.user._id
+    const { code, value } = req.body
+    if (!(id && userId && code) || id.length != OBJECT_ID_LENGTH || (code == 4 && !value)) {
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
+    }
+    await Board.addReportMember({ id, userId, code, value })
     res.send(new SuccessMessage())
   }
   catch (err) {
