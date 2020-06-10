@@ -1,6 +1,8 @@
 const mongoose = require('mongoose')
 const ObjectId = require('mongoose').Types.ObjectId
 
+const User = require('./user')
+
 const reportSchema = mongoose.Schema({
   userId: { type: ObjectId, ref: 'User' },
   code: { type: Number },
@@ -221,6 +223,60 @@ boardSchema.statics.addCommentReportMember = function (param) {
 			"comments.$.commentReportMembers": pushQuery
 		}
   })
+}
+
+boardSchema.statics.analyzeBoard = async function () {
+  // Board의 boardCnt, likeCnt
+  // User의 nickname
+  // Board에 각각 있는 userId가 User의 _id에 대응된다. (N : 1)
+
+  const userMap = {}
+  const boards = await this.aggregate([
+    {
+      $group: {
+        _id: '$userId',
+        boardCnt: { $sum: 1 },
+        likeCnt: { $sum: { $size: '$likeMembers' } }
+      }
+    },
+    {
+      $project: {
+        boardCnt: true,
+        likeCnt: true
+      }
+    }
+  ])
+  if (Array.isArray(boards)) {
+    boards.forEach((elem) => {
+      userMap[elem._id] = {
+        boardCnt: elem.boardCnt,
+        likeCnt: elem.likeCnt
+      }
+    })
+  }
+
+  // 숫자 세고 board의 userId 갖고오는 것까지는 aggregate
+  // const boards = await this.find({}, { _id: true, userId: true, likeMembers: true })
+  // if (!boards) return null
+  
+  // const userMap = {}
+  // if (Array.isArray(boards)) {
+  //   boards.forEach((elem) => {
+  //     userMap[elem.userId] = userMap[elem.userId] || { boardCnt: 0, likeCnt: 0 }
+  //     userMap[elem.userId] = {
+  //       boardCnt: userMap[elem.userId].boardCnt + 1,
+  //       likeCnt: userMap[elem.userId].likeCnt + elem.likeMembers.length
+  //     }
+  //   })
+  // }
+
+  const userKeys = Object.keys(userMap).filter(userId => userId.length == 24)
+  if (userKeys.length > 0) {
+    const users = await User.find({ _id: { $in: userKeys } }, { nickname: true }) 
+    // 게시글을 작성한 회원의 이름만
+    users.forEach(user => { userMap[String(user._id)]['username'] = user.nickname })
+  }
+  return Object.values(userMap)
 }
 
 module.exports = mongoose.model('Board', boardSchema)

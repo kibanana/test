@@ -6,6 +6,7 @@ const controller = require('./board.controller')
 const router = express.Router()
 
 router.get('/boards', controller.FindBoards)
+router.get('/board/analysis', controller.AnalyzeBoard)
 router.get('/board/:id', controller.FindBoard)
 
 router.use('*', passport.authenticate('jwt'))

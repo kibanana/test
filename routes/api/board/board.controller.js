@@ -205,3 +205,14 @@ exports.ReportComment = async (req, res) => {
     res.status(500).send(new InternalErrorMessage())
   }
 }
+
+exports.AnalyzeBoard = async (req, res) => {
+  try {
+    const result = await Board.analyzeBoard()
+    res.send(new SuccessMessage(result))
+  }
+  catch (err) {
+    console.log(err)
+    res.status(500).send(new InternalErrorMessage())
+  }
+}
