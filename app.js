@@ -2,6 +2,7 @@ const express = require('express')
 const passport = require('./middleware/passport')
 const api = require('./routes/api')
 
+require('dotenv').config()
 require('./model')
 
 const app = express()

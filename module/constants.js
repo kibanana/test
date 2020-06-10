@@ -11,6 +11,10 @@ const FailedMessageObj = {
     MESSAGE: 'ERR_EXIST_EMAIL',
     DESCRIPTION: '중복된 이메일입니다. 이미 가입된 계정으로 로그인 해주세요.'
   },
+  INVALID_EMAIL: {
+    MESSAGE: 'ERR_INVALID_EMAIL',
+    DESCRIPTION: '사용할 수 없는 이메일입니다. 이메일 인증을 완료해주세요.'
+  },
   INVAILD_PWD: {
     MESSAGE: 'ERR_INVALID_PWD', 
     DESCRIPTION: '기존 비밀번호가 틀렸습니다'
