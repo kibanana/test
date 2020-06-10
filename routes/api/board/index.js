@@ -17,4 +17,9 @@ router.post('/board/:id/like', controller.LikeBoard)
 router.delete('/board/:id/like/cancel', controller.CancelLikeBoard)
 router.post('/board/:id/report', controller.ReportBoard)
 
+router.post('/board/:id/comment', controller.CreateComment)
+router.patch('/board/:boardId/comment/:commentId', controller.UpdateComment)
+router.delete('/board/:boardId/comment/:commentId', controller.DeleteComment)
+router.post('/board/:boardId/comment/:commentId/report', controller.ReportComment)
+
 module.exports = router

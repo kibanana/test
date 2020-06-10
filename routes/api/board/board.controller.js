@@ -138,3 +138,70 @@ exports.ReportBoard = async (req, res) => {
     res.status(500).send(new InternalErrorMessage())
   }
 }
+
+exports.CreateComment = async (req, res) => {
+  try {
+    const { id: boardId } = req.params
+    const { value } = req.body
+    const userId = req.user._id
+    if (!(boardId && value && userId) || boardId.length != OBJECT_ID_LENGTH) {
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
+    }
+    await Board.addComment({ boardId, userId, value })
+    res.send(new SuccessMessage())
+  }
+  catch (err) {
+    console.log(err)
+    res.status(500).send(new InternalErrorMessage())
+  }
+}
+
+exports.UpdateComment = async (req, res) => {
+  try {
+    const { boardId, commentId } = req.params
+    const { value } = req.body
+    const userId = req.user._id
+    if (!(boardId && commentId && userId && value) || boardId.length != OBJECT_ID_LENGTH || commentId.length != OBJECT_ID_LENGTH) {
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
+    }
+    await Board.updateComment({ boardId, commentId, userId, value })
+    res.send(new SuccessMessage())
+  }
+  catch (err) {
+    console.log(err)
+    res.status(500).send(new InternalErrorMessage())
+  }
+}
+
+exports.DeleteComment = async (req, res) => {
+  try {
+    const { boardId, commentId } = req.params
+    const userId = req.user._id
+    if (!(boardId && commentId && userId) || boardId.length != OBJECT_ID_LENGTH || commentId.length != OBJECT_ID_LENGTH) {
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
+    }
+    await Board.deleteComment({ boardId, commentId, userId })
+    res.send(new SuccessMessage())
+  }
+  catch (err) {
+    console.log(err)
+    res.status(500).send(new InternalErrorMessage())
+  }
+}
+
+exports.ReportComment = async (req, res) => {
+  try {
+    const { boardId, commentId } = req.params
+    const { code, value } = req.body
+    const userId = req.user._id
+    if (!(boardId && commentId && code && userId) || boardId.length != OBJECT_ID_LENGTH || commentId.length != OBJECT_ID_LENGTH || (code == 4 && !value)) {
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
+    }
+    await Board.addCommentReportMember({ boardId, commentId, userId, code, value })
+    res.send(new SuccessMessage())
+  }
+  catch (err) {
+    console.log(err)
+    res.status(500).send(new InternalErrorMessage())
+  }
+}
