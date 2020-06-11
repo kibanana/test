@@ -1,7 +1,7 @@
 const FailedMessageObj = {
   INVALID_PARAM: {
     MESSAGE: 'ERR_INVALID_PARAM', 
-    DESCRIPTION: '필수 파라미터가 전달되지 않았습니다.'
+    DESCRIPTION: '파라미터가 유효하지 않습니다.'
   },
   INVALID_EMAIL_PWD: {
     MESSAGE: 'ERR_INVALID_EMAIL_PWD',
@@ -10,6 +10,10 @@ const FailedMessageObj = {
   EXIST_EMAIL: {
     MESSAGE: 'ERR_EXIST_EMAIL',
     DESCRIPTION: '중복된 이메일입니다. 이미 가입된 계정으로 로그인 해주세요.'
+  },
+  INVALID_EMAIL: {
+    MESSAGE: 'ERR_INVALID_EMAIL',
+    DESCRIPTION: '사용할 수 없는 이메일입니다. 이메일 인증을 완료해주세요.'
   },
   INVAILD_PWD: {
     MESSAGE: 'ERR_INVALID_PWD', 
@@ -22,9 +26,16 @@ const FailedMessageObj = {
   EXIST_NICKNAME: {
     MESSAGE: 'ERR_EXIST_NICKNAME',
     DESCRIPTION: '다른 사용자의 닉네임입니다'
+  },
+  INVALID_REQUEST: {
+    MESSAGE: 'ERR_INVALID_REQUEST',
+    DESCRIPTION: '요청이 잘못됐습니다'
   }
 }
 
+const OBJECT_ID_LENGTH = 24
+
 module.exports = {
-  FailedMessageObj
+  FailedMessageObj,
+  OBJECT_ID_LENGTH
 }

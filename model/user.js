@@ -50,6 +50,10 @@ userSchema.statics.findById = function (id) {
   return this.findOne({ _id: id }, { password: false })
 }
 
+userSchema.statics.findByEmail = function (email) {
+  return this.findOne({ email }, { _id: true })
+}
+
 userSchema.statics.changeUserNickname = function (id, nickname) {
   return this.updateOne({ _id: new ObjectId(id) }, { nickname })
 }
@@ -60,6 +64,13 @@ userSchema.statics.changeUserInfo = function (param) {
   if (address) updateQuery.address = address
   if (birthDay) updateQuery.birthDay = birthDay
   return this.updateOne({ _id: new ObjectId(id) }, updateQuery)
+}
+
+userSchema.statics.changeUserPassword = async function (id, newPassword) {
+  const result = await this.findOne({ _id: new ObjectId(id) })
+  result.password = newPassword
+  result.save() // .save()로 끝내야 비밀번호가 정상적으로 변경됨
+  return 
 }
 
 userSchema.methods.verify = function (password) {

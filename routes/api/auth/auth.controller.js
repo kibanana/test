@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken')
 
 const User = require('../../../model/user')
+const Code = require('../../../model/code')
+const { sendSignUpEmailVerify } = require('../../../module/nodemailer')
 const message = require('../../../module/message')
 const { TOKEN_KEY, TOKEN_OPTIONS } = require('../../../config')
 const { FailedMessageObj } = require('../../../module/constants')
@@ -15,7 +17,9 @@ exports.SignUp = async (req, res) => {
     }
     if (await User.chkExistsEmail(email)) return res.status(400).send(new FailedMessage(FailedMessageObj.EXIST_EMAIL))
     if (await User.chkExistsNickname(nickname)) return res.status(400).send(new FailedMessage(FailedMessageObj.EXIST_NICKNAME))
+    if (!(await Code.findVerifiedEmail(email))) return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_EMAIL))
     await User.signUp({ email, password, nickname, address, birthDay })
+    await Code.deleteSignUpCode(email)
     res.send(new SuccessMessage())
   } 
   catch (err) {
@@ -47,3 +51,33 @@ exports.JwtVerify = (req, res) => {
   res.send(new SuccessMessage())
 }
 
+exports.EmailVerify = async (req, res) => {
+  try {
+    const { email } = req.body
+    if (!email) {
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
+    }
+    const code = await Code.registerSignUpCode(email)
+    await sendSignUpEmailVerify(email, code)
+    res.send(new SuccessMessage())
+  }
+  catch (err) {
+    console.log(err)
+    res.status(500).send(new InternalErrorMessage())
+  }
+}
+
+exports.ConfirmEmailVerify = async (req, res) => {
+  try {
+    const { email, code } = req.query
+    if (!(email && code)) {
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
+    }
+    await Code.verifySignUpCode(email, code)
+    res.send(new SuccessMessage())
+  }
+  catch (err) {
+    console.log(err)
+    res.status(500).send(new InternalErrorMessage())
+  }
+}
