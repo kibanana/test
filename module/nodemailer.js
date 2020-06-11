@@ -18,7 +18,7 @@ const transportOptions = {
 }
 const transporter = nodemailer.createTransport(transportOptions)
 
-const getMessageOptions = (email, useremail, subject) => { // options
+const getMessageOptions = (useremail, subject) => { // options
   return {
     from: email,
     to: useremail,
@@ -45,17 +45,29 @@ const getMessageHtml = (pick, param) => { // html
         }]
       }
     case 2:
+      return {
+        html: `<a href="http://127.0.0.1:3000/api/user/findpassword?code=${code}" target="_blank">Click Me!</a><br><br><br>`
+      }
   }
 }
 
 const sendSignUpEmailVerify = (useremail, code) => {
   const messageOptions = { 
-    ...getMessageOptions(email, useremail, 'test: 회원가입하려면 이메일 인증해주세요!'), 
+    ...getMessageOptions(useremail, 'test: 회원가입하려면 이메일 인증해주세요!'), 
     ...getMessageHtml(1, { useremail, code }) 
   }
   return transporter.sendMail(messageOptions)
 }
 
+const sendFindPasswordEmail = (useremail, code) => {
+  const messageOptions = { 
+    ...getMessageOptions(useremail, 'test: 비밀번호 찾기'), 
+    ...getMessageHtml(2, { useremail, code }) 
+  }
+  return transporter.sendMail(messageOptions)
+}
+
 module.exports = {
-  sendSignUpEmailVerify
+  sendSignUpEmailVerify,
+  sendFindPasswordEmail
 }

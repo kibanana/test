@@ -4,6 +4,7 @@ const createCode = require('../module/createCode')
 
 const codeSchema = mongoose.Schema({ // code는 ObjectId
   email: { type: String },
+  userId: { type: ObjectId, ref: 'User' },
   code: { type: String },
 	isVerified: { default: false }
 })
@@ -24,6 +25,24 @@ codeSchema.statics.findVerifiedEmail = async function (email) {
 
 codeSchema.statics.deleteSignUpCode = function (email) {
 	return this.deleteMany({ email }) // 중복된 email을 사용하여 이메일 인증을 사용했을 수도 있기 때문
+}
+
+codeSchema.statics.registerPasswordCode = async function (userId) {
+	const code = createCode()
+  await this.updateOne({ userId: ObjectId(userId) }, { code }, { upsert: true })
+  return code
+}
+
+codeSchema.statics.findPasswordCode = async function (code) {
+  return (await this.countDocuments({ code }).exec()) > 0
+}
+
+codeSchema.statics.findUserIdByPasswordCode = function (code) {
+  return this.findOne({ code }, { userId: true })
+}
+
+codeSchema.statics.deletePasswordCode = function (userId) {
+  return this.deleteOne({ userId: ObjectId(userId) })
 }
 
 module.exports = mongoose.model('Code', codeSchema)
