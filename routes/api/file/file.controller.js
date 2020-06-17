@@ -1,5 +1,5 @@
 const crypto = require('crypto')
-const fs = require('graceful-fs')
+const fs = require('fs')
 const path = require('path')
 
 const { AES_KEY, AES_IV } = require('../../../config')
@@ -52,7 +52,7 @@ exports.DownloadFile = async (req, res) => {
   }
 }
 
-exports.UploadFile = (req, res) => {
+exports.UploadFile = async (req, res) => {
   try {
     const userId = req.user._id
     const { path: filepath, filename } = req.file
