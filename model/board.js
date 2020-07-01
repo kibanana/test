@@ -32,15 +32,25 @@ boardSchema.statics.createBoard = function (param) {
     .then((result) => result._id)
 }
  
-boardSchema.statics.findBoards = function (searchString, sortKey) { // 어차피 없으면 undefined
+boardSchema.statics.findBoards = async function (searchString, sortKey) { // 어차피 없으면 undefined
   const aggregation = [
-    { $project: { 
-      userId: true, 
-      title: true, 
-      createdAt: true, 
-      likes: { $size: '$likeMembers' },
-      reports: { $size: { $ifNull: ['$reportMembers', []] } } } },
-    { $match: { reports: { $lt: 2 }, isDeleted: false } } // 신고 수가 2보다 작아야 한다, isDeleted가 false여야 한다
+    { 
+      $project: { 
+        userId: true, 
+        title: true, 
+        createdAt: true, 
+        likes: { $size: { $ifNull: ['$likeMembers', []] } },
+        reports: { $size: { $ifNull: ['$reportMembers', []] } },
+        isDeleted: { $ifNull: ['$isDeleted', false] }
+      }
+    },
+    { 
+      $match: {
+        reports: { $lt: 2 },
+        isDeleted: false
+        // 신고 수가 2보다 작아야 한다, isDeleted가 false여야 한다(값이 없을 때를 고려해서)
+      }
+    }
   ]
   const sortCondition = { $sort: {} }
   switch (sortKey) {
@@ -50,7 +60,6 @@ boardSchema.statics.findBoards = function (searchString, sortKey) { // 어차피
     case 3: // 좋아요순
       sortCondition.$sort.likes = -1
       break
-    
     case 1:
     default: // 최신순
       sortCondition.$sort.createdAt = -1
@@ -60,14 +69,38 @@ boardSchema.statics.findBoards = function (searchString, sortKey) { // 어차피
     aggregation.unshift({ $match: { $text: { $search: searchString } } },
       { $sort: { score: { $meta: "textScore" } } },)
   }
-  return this.aggregate(aggregation)
+  const boards = await this.aggregate(aggregation)
+  const boardMap = {}
+  if (Array.isArray(boards)) {
+    boards.forEach((elem) => {
+      boardMap[elem._id] = elem
+    })
+  }
+  const userIds = Object.values(boardMap)
+    .map(elem => elem.userId)
+    .filter(userId => String(userId).length == 24)
+  if (userIds.length > 0) {
+    const users = await User.find({ _id: { $in: userIds } }, { nickname: true })
+    const filteredUserIds = users.map(elem => String(elem._id)) // userIds. nickname은 users에서 가져온다.
+    const boardMapKeys = Object.keys(boardMap)
+    boardMapKeys.forEach(key => {
+      const usernameIdx = filteredUserIds.indexOf(String(boardMap[key].userId))
+      if (usernameIdx === -1) {
+        boardMap[key]['username'] = null
+      }
+      else {
+        boardMap[key]['username'] = users[usernameIdx].nickname
+      }
+    })
+  }
+  return Object.values(boardMap)
 }
 
 boardSchema.statics.findBoard = async function (id) {
-  let result = await this.aggregate([
+  let board = await this.aggregate([
     {
       $match: {
-        _id: ObjectId(id),
+        _id: ObjectId(id)
       }
     },
     { 
@@ -76,18 +109,25 @@ boardSchema.statics.findBoard = async function (id) {
         title: true, 
         body: true, 
         createdAt: true,
-        likes: { $size: '$likeMembers' },
-        reports: { $size: { $ifNull: ['$reportMembers', []] } },
+        // likes: { $size: { $ifNull: ['$likeMembers', []] } },
+        // reports: { $size: { $ifNull: ['$reportMembers', []] } },
+        likes: { $ifNull: ['$likeMembers', []] },
+        reports: { $ifNull: ['$reportMembers', []] },
         comments: {
           _id: true,
           userId: true,
           value: true,
           commentReportMembers: {
-            $cond: {
-              if: { $isArray: '$commentReportMembers' },
-              then: 'commentReportMembers',
-              else: []
-            }
+            _id: true,
+            userId: true,
+            code: true,
+            value: { $ifNull: ['$value', '']},
+            createdAt: true
+            // $cond: {
+            //   if: { $isArray: '$commentReportMembers' },
+            //   then: 'commentReportMembers',
+            //   else: []
+            // }
           },
           // commentReportMembers: true, // 이것만 하면 값이 배열이 아닐 때 아래 for문에서 에러 발생
           createdAt: true
@@ -106,23 +146,42 @@ boardSchema.statics.findBoard = async function (id) {
         //   }
         // }
       }
-    }
+    },
   ])
-  result = result[0] // Mongoose 쿼리의 결과로 반환되는 배열의 [0]
-  for (let i = 0; i < result.comments.length; i++) { // comments 배열 순회
-    result.comments[i].reports = result.comments[i].commentReportMembers.length
-    if (result.comments[i].reports >= 2) { // comment의 commentReportMembers 배열의 크기가 2보다 크면
-      // 1)
-      result = result.comments.filter((value, idx) => idx != i)
-      // 2)
-      // result.comments.splice(i, 1)
-      i--
-    }
-    else {
-      delete result.comments[i].commentReportMembers // 삭제되지 않은 comments에서 commentReportMembers 배열 삭제
-    }
+  board = board[0]
+  const userId = board.userId && String(board.userId).length == 24 ? String(board.userId) : ''
+  let user = null
+  if (userId) {
+    const result = await User.findOne({ _id: userId }, { nickname: true })
+    if (result) user = { username: result.nickname }
   }
-  return result
+  board = Object.assign(board, user || {})
+
+  const commentMap = {}
+  if (Array.isArray(board.comments)) {
+    board.comments.forEach((elem) => {
+      commentMap[elem._id] = elem
+    })
+  }
+  const commentUserIds = Object.values(commentMap)
+    .map(elem => elem.userId)
+    .filter(userId => String(userId).length == 24)
+  if (commentUserIds.length > 0) {
+    const users = await User.find({ _id: { $in: commentUserIds } }, { nickname: true })
+    const filteredUserIds = users.map(elem => String(elem._id)) // userIds. nickname은 users에서 가져온다.
+    const commentMapKeys = Object.keys(commentMap)
+    commentMapKeys.forEach(key => {
+      const usernameIdx = filteredUserIds.indexOf(String(commentMap[key].userId))
+      if (usernameIdx === -1) {
+        commentMap[key]['username'] = null
+      }
+      else {
+        commentMap[key]['username'] = users[usernameIdx].nickname
+      }
+    })
+  }
+  board.comments = Object.values(commentMap)
+  return board
 }
 
 boardSchema.statics.updateBoard = function (param) { // userId는 JWT에서
@@ -189,8 +248,12 @@ boardSchema.statics.updateComment = function (param) {
   const { boardId, commentId, userId, value } = param
 	return this.updateOne({ 
     _id: ObjectId(boardId),
-    'comments.userId': ObjectId(userId),
-    'comments._id': ObjectId(commentId)
+    comments: {
+      $elemMatch: {
+        _id: ObjectId(commentId),
+        userId: ObjectId(userId)
+      }
+    }
 	}, {
 		$set: { 'comments.$.value': value }
 	})
@@ -207,7 +270,7 @@ boardSchema.statics.deleteComment = function (param) {
 }
 
 boardSchema.statics.addCommentReportMember = function (param) {
-	const { boardId, commentId, userId, code, value } = param
+  const { boardId, commentId, userId, code, value } = param
 	const pushQuery = {
 		userId: ObjectId(userId), code
 	}
@@ -216,8 +279,8 @@ boardSchema.statics.addCommentReportMember = function (param) {
   }
   return this.updateOne({
     _id: ObjectId(boardId),
-    'comments.commentReportMembers': { $not: { $elemMatch: { userId: ObjectId(userId) } } },
-    'comments._id': ObjectId(commentId)
+    'comments._id': ObjectId(commentId),
+    // 'comments.commentReportMembers': { $not: { $elemMatch: { userId: ObjectId(userId) } } } // 이게 있으면 한 댓글에 신고한 기록이 있을 때 다른 댓글을 신고할 수 없게 된다.
   }, {
     $push: {
 			"comments.$.commentReportMembers": pushQuery
@@ -243,6 +306,11 @@ boardSchema.statics.analyzeBoard = async function () {
       $project: {
         boardCnt: true,
         likeCnt: true
+      }
+    }, {
+      $sort: {
+        boardCnt: -1,
+        likeCnt: -1
       }
     }
   ])

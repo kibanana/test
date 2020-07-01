@@ -2,6 +2,7 @@ const express = require('express')
 const passport = require('./middleware/passport')
 const api = require('./routes/api')
 
+const cors = require('cors');
 const http = require('http')
 const faker = require('faker')
 
@@ -14,6 +15,7 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(passport.initialize())
 app.use(passport.session())
+app.use(cors());
 
 app.use('/api', api)
 

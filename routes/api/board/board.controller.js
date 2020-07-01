@@ -23,8 +23,8 @@ exports.CreateBoard = async (req, res) => {
 
 exports.FindBoards = async (req, res) => {
   try {
-    const { searchString, sortKey } = req.body
-    const boards = await Board.findBoards(searchString, Number(sortKey))
+    const { searchString, sortKey } = req.query
+    const boards = await Board.findBoards(searchString, sortKey ? Number(sortKey) : null)
     res.send(new SuccessMessage(boards))
   }
   catch (err) {
