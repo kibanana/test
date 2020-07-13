@@ -1,0 +1,64 @@
+get:
+  summary: board 컬렉션 가져오기
+  parameters:
+    - name: searchString
+      in: query
+      description: 검색을 위한 문자열
+      schema:
+        type: string
+    - name: sortKey
+      in: query
+      description: 정렬을 위한 키
+      schema:
+        type: integer
+        minimum: 1
+  responses:
+    '200':
+      description: 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Board'
+    '500':
+      $ref: '#/components/responses/500'
+
+post: # need jwt
+    summary: board 도큐먼트 추가
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              body:
+                type: string
+    responses:
+      '200':
+        description: 성공
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                data:
+                  type: string
+      '400':
+        $ref: '#/components/responses/400'
+      '401':
+        $ref: '#/components/responses/401'
+      '500':
+        $ref: '#/components/responses/500'

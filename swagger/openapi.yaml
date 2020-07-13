@@ -1,0 +1,84 @@
+openapi: 3.0.1
+info:
+  version: 1.0.0
+  title: test API
+  description: Swagger open api 3.0 연습
+servers:
+  - url: http://localhost:{port}/{basePath}
+    description: Local Server
+    variables:
+      port:
+        default: 3000
+      basePath:
+        default: v1
+paths:
+  /auth/sign-up:
+    $ref: ./swagger/paths/auth_sign_up.yaml
+  /auth/sign-in:
+    $ref: ./swagger/paths/auth_sign_in.yaml
+  /auth/jwt-verify:
+    $ref: ./swagger/paths/auth_jwt_verify.yaml
+  /boards:
+    $ref: ./swagger/paths/board_list.yaml
+  /boards/{id}:
+    $ref: ./swagger/paths/board_item.yaml
+  /boards/analysis:
+    $ref: ./swagger/paths/board_analysis.yaml
+  /boards/{id}/like:
+    $ref: ./swagger/paths/board_item_like.yaml
+  /boards/{id}/like/cancel:
+    $ref: ./swagger/paths/board_item_like_cancel.yaml
+  /boards/{id}/report:
+    $ref: ./swagger/paths/board_item_report.yaml
+  /boards/{id}/comment:
+    $ref: ./swagger/paths/board_item_comment.yaml
+  /boards/{boardId}/comment/{commentId}:
+    $ref: ./swagger/paths/board_comment.yaml
+  /boards/{boardId}/comment/{commentId}/report:
+    $ref: ./swagger/paths/board_comment_report.yaml
+  /files:
+    $ref: ./swagger/paths/file_list.yaml
+  /files/download/{id}:
+    $ref: ./swagger/paths/file_download.yaml
+  /files/upload:
+    $ref: ./swagger/paths/file_upload.yaml
+  /fonts:
+    $ref: ./swagger/paths/font_list.yaml
+  /fonts/upload:
+    $ref: ./swagger/paths/font_upload.yaml
+  /users/find-password:
+    $ref: ./swagger/paths/user_find_password.yaml
+  /users/password:
+    $ref: ./swagger/paths/user_password.yaml
+  /users/nickname:
+    $ref: ./swagger/paths/user_nickname.yaml
+  /users/info:
+    $ref: ./swagger/paths/user_info.yaml
+security:
+  - BearerAuth: []
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Board:
+      $ref: ./swagger/schemas/Board.yaml
+    Code:
+      $ref: ./swagger/schemas/Code.yaml
+    File:
+      $ref: ./swagger/schemas/File.yaml
+    Font:
+      $ref: ./swagger/schemas/Font.yaml
+    User:
+      $ref: ./swagger/schemas/User.yaml
+  responses:
+    '400':
+      $ref: ./swagger/res/400.yaml
+    '401':
+      $ref: ./swagger/res/401.yaml
+    '404':
+      $ref: ./swagger/res/404.yaml
+    '500':
+      $ref: ./swagger/res/500.yaml

@@ -1,0 +1,73 @@
+patch: # need jwt
+  summary: board 댓글 수정
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: boardId
+      in: path
+      required: true
+      description: 댓글이 달려있는 board id
+      schema:
+        type: string
+    - name: commentId
+      in: path
+      required: true
+      description: 수정할 댓글의 comment id
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/x-www-form-urlencoded:
+        schema:
+          type: object
+          properties:
+            value:
+              type: string
+  responses:
+    '200':
+      description: 성공
+      content:
+        application/json:
+          schema:
+            type: object
+    '400':
+      $ref: '#/components/responses/400'
+    '401':
+      $ref: '#/components/responses/401'
+    '500':
+      $ref: '#/components/responses/500'
+
+delete: # need jwt
+  summary: board 댓글 삭제
+  security:
+    - BearerAuth: []
+  parameters:
+    - name: boardId
+      in: path
+      required: true
+      description: 댓글이 달려있는 board id
+      schema:
+        type: string
+    - name: commentId
+      in: path
+      required: true
+      description: 삭제할 댓글의 comment id
+      schema:
+        type: string
+  responses:
+    '200':
+      description: 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+    '400':
+      $ref: '#/components/responses/400'
+    '401':
+      $ref: '#/components/responses/401'
+    '500':
+      $ref: '#/components/responses/500'

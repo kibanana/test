@@ -1,0 +1,71 @@
+/files:
+  get:
+    summary: file 컬렉션 가져오기
+    responses:
+      '200':
+        description: 성공
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/File'
+      '500':
+        $ref: '#/components/responses/500'
+
+
+/files/download/{id}:
+  get:
+    summary: file 도큐먼트 가져오기
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: 가져올 file id
+        schema:
+          type: string
+    responses:
+      '200':
+        description: 성공
+      '400':
+        $ref: '#/components/responses/400'
+      '500':
+        $ref: '#/components/responses/500'
+
+
+/files/upload: # nedd jwt
+  post:
+    summary: file 도큐먼트 추가
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              newFile:
+                type: string
+                format: binary
+    responses:
+      '200':
+        description: 성공
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      '400':
+        $ref: '#/components/responses/400'
+      '401':
+        $ref: '#/components/responses/401'
+      '500':
+        $ref: '#/components/responses/500'

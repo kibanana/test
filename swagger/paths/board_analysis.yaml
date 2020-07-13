@@ -1,0 +1,25 @@
+get:
+  summary: board 통계 가져오기
+  responses:
+    '200':
+      description: 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    boardCnt:
+                      type: integer
+                    likeCnt:
+                      type: integer
+                    username:
+                      type: string
+    '500':
+      $ref: '#/components/responses/500'

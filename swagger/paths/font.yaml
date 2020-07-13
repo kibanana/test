@@ -1,0 +1,51 @@
+/fonts:
+  get:
+    summary: font 컬렉션 가져오기
+    responses:
+      '200':
+        description: 성공
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Font'
+      '500':
+        $ref: '#/components/responses/500'
+
+/fonts/upload:
+  post:
+    summary: font 도큐먼트 추가
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              newFile:
+                type: string
+                format: binary
+    responses:
+      '200':
+        description: 성공
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      '400':
+        $ref: '#/components/responses/400'
+      '401':
+        $ref: '#/components/responses/401'
+      '500':
+        $ref: '#/components/responses/500'

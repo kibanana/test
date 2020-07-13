@@ -1,0 +1,18 @@
+get:
+  summary: file 컬렉션 가져오기
+  responses:
+    '200':
+      description: 성공
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+              data:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+    '500':
+      $ref: '#/components/responses/500'
