@@ -25,7 +25,7 @@ exports.DownloadFile = async (req, res) => {
   try {
     const { id } = req.params
     if (!id || id.length != OBJECT_ID_LENGTH) {
-      return res.send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
+      return res.status(400).send(new FailedMessage(FailedMessageObj.INVALID_PARAM))
     }
     
     const file = await File.findFile(id)
